@@ -25,4 +25,25 @@ public class Cliente {
     @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL)
     private List<Cuenta> cuentas;
 
+    public int getIntentos() {
+       return this.intentosFallidos;
+    }
+
+    public void setIntentos(int intentos) {
+        this.intentosFallidos = intentos;
+    }
+
+    public void incfementarIntento(){
+        this.intentosFallidos++;
+    }
+
+    public void reiniciarIntentos(){
+        this.intentosFallidos = 0;
+    }
+
+    public String getNombreCompleto(){
+        return this.nombre;
+    }
+       
+
 }
