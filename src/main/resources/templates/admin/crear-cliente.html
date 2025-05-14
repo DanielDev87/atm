@@ -34,6 +34,10 @@
 
         <div  th:if="${mensaje}" th:text="${mensaje}"
         th:class="${error} ? 'message error': 'message success'"></div>
+
+        <a th:href="@{/admin}" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
     </div>
     
 </body>
