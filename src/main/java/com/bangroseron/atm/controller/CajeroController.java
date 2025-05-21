@@ -66,4 +66,18 @@ public class CajeroController {
         return "redirect:/cajero/menu";
     }
 
+    @GetMapping("/menu")
+    public String menu(HttpSession session, Model model) {
+        Cliente cliente = (Cliente) session.
+        getAttribute("cliente");
+        if (cliente == null) {
+            return "redirect:/cajero";
+        return new String();
+
+        model.addAttribute("cliente", cliente);
+        model.addAttribute("cuentas", cuentaService.buscarPorCliente(cliente));
+        return "cajero/menu";
+    }
+    
+
 }
