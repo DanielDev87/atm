@@ -27,57 +27,55 @@ public class CajeroController {
     private final MovimientoService movimientoService;
     private final RetiroService retiroService;
 
-    @GetMapping
-    public String loginForm(){
+   @GetMapping
+    public String loginForm() {
         return "cajero/login";
     }
 
     @PostMapping("/login")
     public String login(@RequestParam String numeroCuenta,
-    @RequestParam String pin,HttpSession session, 
-    Model model) {
+                        @RequestParam String pin,
+                        HttpSession session,
+                        Model model) {
         var cuenta = cuentaService.buscarPorNumero(numeroCuenta);
         if (cuenta.isEmpty()) {
-            model.addAttribute("error", "Cuenta no se encuentra o Inexistente");
+            model.addAttribute("error", "Cuenta no encontrada.");
             return "cajero/login";
         }
 
         Cliente cliente = cuenta.get().getCliente();
 
-        if(cliente.isBloqueado()){
-            model.addAttribute("error", "Cuenta Bloqueada");
+        if (cliente.isBloqueado()) {
+            model.addAttribute("error", "Cuenta bloqueada.");
             return "cajero/login";
         }
 
         if (!cliente.getPin().equals(pin)) {
             clienteService.incrementarIntento(cliente);
-            if (cliente.getIntentos()>= 3) {
+            if (cliente.getIntentos() >= 3) {
                 clienteService.bloquearCliente(cliente);
-                model.addAttribute("error", "Cuenta Bloqueada por intentos fallidos");
-
-            }else{
-                model.addAttribute("error", "Pin Incorrecto");
+                model.addAttribute("error", "Cuenta bloqueada por intentos fallidos.");
+            } else {
+                model.addAttribute("error", "PIN incorrecto.");
             }
             return "cajero/login";
         }
 
-        ClienteService.reiniciarIntentos(cliente);
+        clienteService.reiniciarIntentos(cliente);
         session.setAttribute("cliente", cliente);
         return "redirect:/cajero/menu";
     }
 
     @GetMapping("/menu")
     public String menu(HttpSession session, Model model) {
-        Cliente cliente = (Cliente) session.
-        getAttribute("cliente");
-        if (cliente == null) {
-            return "redirect:/cajero";
-        return new String();
+        Cliente cliente = (Cliente) session.getAttribute("cliente");
+        if (cliente == null) return "redirect:/cajero";
 
         model.addAttribute("cliente", cliente);
         model.addAttribute("cuentas", cuentaService.buscarPorCliente(cliente));
         return "cajero/menu";
     }
+    
     
 
 }
