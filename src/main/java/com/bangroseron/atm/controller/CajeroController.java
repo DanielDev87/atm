@@ -75,6 +75,28 @@ public class CajeroController {
         model.addAttribute("cuentas", cuentaService.buscarPorCliente(cliente));
         return "cajero/menu";
     }
+
+    @GetMapping("/consultas")
+    public String consultas(Model model ,  HttpSession session){
+        Cliente cliente = (Cliente) session.getAttribute("cliente");
+        model.addAttribute("cuentas", cuentaService.buscarPorCliente(cliente));
+        return "cajero/consultas";
+    }
+
+    @GetMapping("/movimientos/{numero}")
+    public String movimientos(@PathVariable String numero, Model model, HttpSession session) {
+      Cliente cliente = (Cliente) session.getAttribute("cliente");
+      if (cliente == null) return "redirect:/cajero";
+
+      try {
+        var movimientos = movimientoService.buscarPorCuenta(numero);
+        model.addAttribute("movimientos", movimientos);
+        return "cajero/movimientos";
+      } catch (Exception e) {
+        model.addAttribute("error","No fue posible obtener los movimientos: " + e.getMessage());
+        return "cajero/consultas";
+      }
+    }
     
     
 
