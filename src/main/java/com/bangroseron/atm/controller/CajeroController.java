@@ -3,12 +3,14 @@ package com.bangroseron.atm.controller;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.bangroseron.atm.entity.Cliente;
+import com.bangroseron.atm.entity.Cuenta;
 import com.bangroseron.atm.repository.CuentaRepository;
 import com.bangroseron.atm.services.ClienteService;
 import com.bangroseron.atm.services.CuentaService;
@@ -125,7 +127,31 @@ public class CajeroController {
             return "redirect:/cajero/retiro";
         }
     }
+
+    @GetMapping("/consignar")
+    public String mostrarFormularioConsignacion(HttpSession session, Model model) {
+        Cliente cliente = (Cliente) session.getAttribute("cliente");
+        if (cliente == null) {
+            return "redirect:/cajero";
+        }       
+        return "cajero/consignar";
+    }
     
-    
+    @PostMapping("/consignar")
+    public String consignar(@RequestParam String numeroCuenta,
+                            @RequestParam double monto,
+                            Model model) {
+        try {
+            Cuenta cuenta = cuentaRepository.findByNumero(numeroCuenta)
+                    .orElseThrow(() -> new RuntimeException("Cuenta no encontrada"));
+
+            movimientoService.realizarConsignacion(cuenta, monto);
+            model.addAttribute("mensaje", "Consignación exitosa. Nuevo saldo: " + cuenta.getSaldo());
+        } catch (Exception e) {
+            model.addAttribute("error", e.getMessage());
+        }
+
+        return "cajero/consignar";
+    }
 
 }
