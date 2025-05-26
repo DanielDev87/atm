@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.bangroseron.atm.dto.TransferenciaForm;
 import com.bangroseron.atm.entity.Cliente;
 import com.bangroseron.atm.entity.Cuenta;
 import com.bangroseron.atm.repository.CuentaRepository;
@@ -152,6 +153,41 @@ public class CajeroController {
         }
 
         return "cajero/consignar";
+    }
+
+    @GetMapping("/transferir")
+    public String mostrarFormularioTransferencia(Model model) {
+    model.addAttribute("transferenciaForm", new TransferenciaForm());
+    return "cajero/transferir";
+    }
+
+    @PostMapping("/transferir")
+    public String transferir(@RequestParam String numeroCuentaDestino,
+                         @RequestParam double monto,
+                         HttpSession session,
+                         Model model) {
+    Cliente cliente = (Cliente) session.getAttribute("cliente");
+    if (cliente == null) return "redirect:/cajero";
+
+    Cuenta origen = cuentaService.buscarPorCliente(cliente)
+                                 .stream()
+                                 .findFirst()
+                                 .orElseThrow(() -> new RuntimeException("No se encontró cuenta origen"));
+
+    try {
+        Cuenta destino = cuentaService.buscarPorNumero(numeroCuentaDestino)
+                .orElseThrow(() -> new RuntimeException("Cuenta destino no encontrada"));
+
+        if (movimientoService.realizarTransferencia(origen, destino, monto)) {
+            model.addAttribute("mensaje", "Transferencia realizada con éxito");
+        } else {
+            model.addAttribute("error", "Saldo insuficiente para realizar la transferencia");
+        }
+    } catch (Exception e) {
+        model.addAttribute("error", "Error: " + e.getMessage());
+    }
+
+    return "cajero/transferir";
     }
 
 }
