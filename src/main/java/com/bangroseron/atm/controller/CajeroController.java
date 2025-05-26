@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.bangroseron.atm.entity.Cliente;
 import com.bangroseron.atm.repository.CuentaRepository;
@@ -96,6 +97,33 @@ public class CajeroController {
         model.addAttribute("error","No fue posible obtener los movimientos: " + e.getMessage());
         return "cajero/consultas";
       }
+    }
+
+    @GetMapping("/logout")
+    public String logout(HttpSession session) {
+        session.invalidate();
+        return "redirect:/cajero";
+    }
+
+    @GetMapping("/retiro")
+    public String mostrarFormularioRetiro(Model model, HttpSession session) {
+        Cliente cliente = (Cliente) session.getAttribute("cliente");      
+        model.addAttribute("cuentas", cuentaService.buscarPorCliente(cliente));
+        return "cajero/retiro";
+    }
+
+    @PostMapping("/retiro")
+    public String realizarRetiro(@RequestParam String identificacion,
+    @RequestParam String numeroCuenta,
+    @RequestParam double monto,RedirectAttributes redirectAttributes){
+        try {
+            String resultado =retiroService.realizarRetiro(identificacion, numeroCuenta, monto);
+            redirectAttributes.addFlashAttribute("mensaje", "Retiro exitoso");
+            return resultado;
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/cajero/retiro";
+        }
     }
     
     
