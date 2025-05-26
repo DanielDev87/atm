@@ -201,4 +201,38 @@ public class CajeroController {
         .orElse(Map.of());   
     }
 
+    @GetMapping("/cambiar-clave")
+    public String mostrarFormularioCambioClave() {
+        return "cajero/cambiar-clave"; 
+    }
+
+    @PostMapping("/cambiar-clave")
+    public String cambiarClave(@RequestParam String claveActual,
+    @RequestParam String nuevaClave,@RequestParam String confirmarClave,
+    HttpSession session, Model model){
+        Cliente cliente = (Cliente) session.getAttribute("cliente");
+        if (cliente == null){
+            return "redirect:/cajero";
+        }
+        //
+        if (!cliente.getPin().equals(claveActual)) {
+            model.addAttribute("error", "Clave actual incorrecta.");
+            return "cajero/cambiar-clave";            
+        }
+        //
+        if (!nuevaClave.equals(confirmarClave)) {
+            model.addAttribute("error", "Las nuevas claves no coinciden.");
+            return "cajero/cambiar-clave";            
+        }
+        //
+        clienteService.cambiarPin(cliente, nuevaClave);
+
+        session.setAttribute("cliente", cliente);
+
+        model.addAttribute("mensaje", "Clave cambiada exitosamente.");
+        return "cajero/cambiar-clave";      
+
+        
+    }
+
 }
